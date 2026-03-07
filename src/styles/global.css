@@ -1,0 +1,13 @@
+:root {
+  font-family: "SF Pro Text", "Segoe UI", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: radial-gradient(circle at 90% -10%, #6fc1ff 0%, #e9eef6 35%), #e9eef6;
+  color: #133a63;
+}

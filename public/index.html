@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Доступ • Telegram Mini App</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  </head>
+  <body>
+    <main class="app">
+      <section class="hero">
+        <p class="brand-note">ДОСТУП</p>
+        <h1>Вход и регистрация</h1>
+        <p class="hero-text">
+          Тестовый Telegram Mini App для авторизации через Telegram, email или телефон.
+        </p>
+      </section>
+
+      <section class="card">
+        <h2>Сервис</h2>
+        <label class="label" for="api-base-url">Адрес API</label>
+        <input id="api-base-url" class="input" type="text" value="http://127.0.0.1:3001" />
+        <p class="hint">Для локальной проверки: <code>http://127.0.0.1:3001</code>.</p>
+      </section>
+
+      <section class="card">
+        <div class="tabs" role="tablist" aria-label="Тип входа">
+          <button class="tab is-active" data-tab="telegram" type="button">Telegram</button>
+          <button class="tab" data-tab="email" type="button">Email</button>
+          <button class="tab" data-tab="phone" type="button">Телефон</button>
+        </div>
+
+        <div class="panel is-active" data-panel="telegram">
+          <button id="tg-auth-btn" class="button">Войти через Telegram</button>
+          <p class="hint">
+            В WebApp авторизация пройдет автоматически через <code>initData</code>.
+          </p>
+        </div>
+
+        <div class="panel" data-panel="email">
+          <label class="label" for="email-input">Email</label>
+          <input id="email-input" class="input" type="email" placeholder="dev@dostup.local" />
+          <button id="email-start-btn" class="button">Получить код</button>
+        </div>
+
+        <div class="panel" data-panel="phone">
+          <label class="label" for="phone-input">Телефон</label>
+          <input id="phone-input" class="input" type="text" placeholder="+79990000000" />
+          <button id="phone-start-btn" class="button">Получить код</button>
+        </div>
+
+        <div class="verify-block">
+          <label class="label" for="challenge-id-input">Challenge ID</label>
+          <input id="challenge-id-input" class="input" type="text" readonly />
+          <label class="label" for="code-input">Код</label>
+          <input id="code-input" class="input" type="text" placeholder="telegram или OTP-код" />
+          <button id="verify-btn" class="button button-secondary">Подтвердить вход</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Сессия</h2>
+        <pre id="session-view" class="session-view">Сессия не создана</pre>
+        <div class="actions">
+          <button id="logout-btn" class="button button-ghost">Выйти</button>
+          <button id="clear-btn" class="button button-ghost">Сбросить</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Статус</h2>
+        <p id="status-line" class="status">Готово к проверке</p>
+      </section>
+    </main>
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

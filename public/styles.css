@@ -1,0 +1,203 @@
+:root {
+  --bg: #e9eef6;
+  --surface: #f8fbff;
+  --text: #133a63;
+  --text-muted: #5f7d9f;
+  --line: #cfe0f3;
+  --primary: #2283dd;
+  --primary-strong: #1760a7;
+  --ok: #148a4f;
+  --err: #b23434;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: radial-gradient(circle at 90% -10%, #6fc1ff 0%, #e9eef6 35%), var(--bg);
+  color: var(--text);
+  font: 16px/1.4 "SF Pro Text", "Segoe UI", sans-serif;
+}
+
+.app {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 20px 14px 40px;
+  display: grid;
+  gap: 14px;
+}
+
+.hero {
+  border-radius: 24px;
+  padding: 18px;
+  background: linear-gradient(140deg, #0d3d69, #2e93e9);
+  color: #f7fbff;
+}
+
+.brand-note {
+  margin: 0 0 8px;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  opacity: 0.8;
+}
+
+.hero h1 {
+  margin: 0 0 8px;
+  font-size: 32px;
+  line-height: 1.05;
+}
+
+.hero-text {
+  margin: 0;
+  color: rgba(247, 251, 255, 0.9);
+}
+
+.card {
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--surface);
+  padding: 16px;
+}
+
+.card h2 {
+  margin: 0 0 12px;
+  font-size: 28px;
+  line-height: 1;
+}
+
+.label {
+  display: block;
+  margin: 8px 0 6px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 12px;
+}
+
+.hint {
+  margin: 8px 0 0;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.input {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 13px 14px;
+  font-size: 18px;
+  color: var(--text);
+  background: #fff;
+}
+
+.tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.tab,
+.button {
+  border: 1px solid transparent;
+  border-radius: 14px;
+  padding: 12px 14px;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tab {
+  color: var(--primary-strong);
+  background: #fff;
+  border-color: var(--line);
+}
+
+.tab.is-active {
+  color: #f7fbff;
+  background: linear-gradient(140deg, var(--primary-strong), var(--primary));
+  border-color: transparent;
+}
+
+.panel {
+  display: none;
+}
+
+.panel.is-active {
+  display: block;
+}
+
+.verify-block {
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--line);
+}
+
+.button {
+  margin-top: 10px;
+  width: 100%;
+  color: #f8fbff;
+  background: linear-gradient(140deg, var(--primary-strong), var(--primary));
+}
+
+.button-secondary {
+  background: linear-gradient(140deg, #1e6a31, #27a552);
+}
+
+.button-ghost {
+  margin-top: 0;
+  width: auto;
+  background: #f0f6ff;
+  color: var(--primary-strong);
+  border-color: var(--line);
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.session-view {
+  margin: 0;
+  min-height: 120px;
+  max-height: 220px;
+  overflow: auto;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  padding: 10px;
+  background: #fff;
+  color: #1a3b5d;
+  font-size: 13px;
+}
+
+.status {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #eef6ff;
+  color: var(--text);
+}
+
+.status.is-ok {
+  color: var(--ok);
+}
+
+.status.is-error {
+  color: var(--err);
+}
+
+@media (max-width: 480px) {
+  .hero h1,
+  .card h2 {
+    font-size: 24px;
+  }
+
+  .tab,
+  .button,
+  .input {
+    font-size: 16px;
+  }
+}
