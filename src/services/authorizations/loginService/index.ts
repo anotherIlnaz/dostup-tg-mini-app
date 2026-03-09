@@ -1,2 +1,3 @@
 export { loginService } from "./loginService.model";
-export { LoginContainer } from "./loginService.container";
+// Legacy login container intentionally archived and kept out of runtime.
+// export { LoginContainer } from "./loginService.container";

@@ -5,8 +5,12 @@ declare global {
     Telegram?: {
       WebApp?: {
         initData?: string;
+        platform?: string;
         ready: () => void;
         expand: () => void;
+        HapticFeedback?: {
+          notificationOccurred?: (type: "error" | "success" | "warning") => void;
+        };
       };
     };
   }

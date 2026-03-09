@@ -1,3 +1,6 @@
+/*
+Legacy LoginPage styles archived on 2026-03-08.
+
 import styled from "styled-components";
 
 export const Page = styled.main`
@@ -102,3 +105,4 @@ export const Actions = styled.div`
   display: flex;
   gap: 8px;
 `;
+*/

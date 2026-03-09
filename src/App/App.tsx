@@ -1,5 +1,5 @@
-import { LoginContainer } from "../services/authorizations/loginService";
+import { AuthPage } from "../features/auth/pages/AuthPage";
 
 export const App = () => {
-  return <LoginContainer />;
+  return <AuthPage />;
 };

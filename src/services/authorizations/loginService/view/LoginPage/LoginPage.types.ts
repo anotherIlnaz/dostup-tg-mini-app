@@ -1,3 +1,6 @@
+/*
+Legacy LoginPage types archived on 2026-03-08.
+
 import type { AuthProvider, AuthSessionState } from "../../../../../api/types";
 
 export interface LoginPageProps {
@@ -16,3 +19,4 @@ export interface LoginPageProps {
   onVerify: (challengeId: string, code: string, provider: AuthProvider) => Promise<void>;
   onClearSession: () => void;
 }
+*/

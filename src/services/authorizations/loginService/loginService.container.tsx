@@ -1,3 +1,11 @@
+/*
+Legacy login container archived on 2026-03-08.
+Runtime path now uses:
+- src/App/App.tsx
+- src/features/auth/pages/AuthPage.tsx
+
+Previous implementation:
+
 import { useEffect, useState } from "react";
 import { useUnit } from "effector-react";
 import type { AuthProvider } from "../../../api/types";
@@ -89,3 +97,4 @@ export const LoginContainer = () => {
     />
   );
 };
+*/

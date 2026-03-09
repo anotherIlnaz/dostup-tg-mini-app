@@ -1,3 +1,8 @@
+/*
+Legacy LoginPage archived on 2026-03-08.
+This code is intentionally commented out to keep the previous implementation
+available for reference without participating in runtime or build paths.
+
 import { useState } from "react";
 import type { AuthProvider } from "../../../../../api/types";
 import type { LoginPageProps } from "./LoginPage.types";
@@ -150,3 +155,4 @@ export const LoginPage = ({
     </Page>
   );
 };
+*/
