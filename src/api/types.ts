@@ -91,8 +91,9 @@ export interface DeviceResponse {
 }
 
 export interface SubscriptionLinkResponse {
-  subscription_url: string;
-  expires_at: string;
+  ok: boolean;
+  link: string;
+  installLimit: number;
 }
 
 export interface PlanSummary {

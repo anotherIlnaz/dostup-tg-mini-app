@@ -69,18 +69,15 @@ export const updateDeviceRouting = (
 export const issueSubscriptionLink = (
   apiBaseUrl: string,
   accessToken: string,
-  deviceId: string
+  subscriptionId: string
 ): Promise<SubscriptionLinkResponse> =>
   postJson(
     apiBaseUrl,
-    "/v1/sub/link",
-    {
-      device_id: deviceId
-    },
+    `/api/subscriptions/${subscriptionId}/happ-link`,
+    undefined,
     {
       headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "X-Device-Id": deviceId
+        Authorization: `Bearer ${accessToken}`
       }
     }
   );

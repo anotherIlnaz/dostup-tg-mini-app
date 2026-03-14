@@ -41,10 +41,11 @@ const buildMockSession = (apiBaseUrl: string): AuthSessionState => {
 interface CachedSubscriptionLink {
   deviceId: string;
   subscriptionUrl: string;
-  expiresAt: string;
+  cachedAt: string;
 }
 
-const SUBSCRIPTION_LINK_CACHE_VERSION = "universal-1";
+const SUBSCRIPTION_LINK_CACHE_VERSION = "happ-1";
+const FALLBACK_LINK_CACHE_TTL_MS = 60 * 60 * 1000;
 
 function normalizeSubscriptionUrl(rawUrl: string): string {
   try {
@@ -73,13 +74,14 @@ function readCachedSubscriptionLink(apiBaseUrl: string, deviceId: string): Cache
   try {
     const parsed = JSON.parse(raw) as CachedSubscriptionLink;
     const normalizedSubscriptionUrl = normalizeSubscriptionUrl(parsed.subscriptionUrl);
+    const cachedAtTimestamp = Date.parse(parsed.cachedAt);
     if (
       parsed.deviceId !== deviceId ||
       typeof normalizedSubscriptionUrl !== "string" ||
       normalizedSubscriptionUrl.length < 20 ||
-      typeof parsed.expiresAt !== "string" ||
-      Number.isNaN(Date.parse(parsed.expiresAt)) ||
-      new Date(parsed.expiresAt).getTime() <= Date.now()
+      typeof parsed.cachedAt !== "string" ||
+      Number.isNaN(cachedAtTimestamp) ||
+      cachedAtTimestamp + FALLBACK_LINK_CACHE_TTL_MS <= Date.now()
     ) {
       window.localStorage.removeItem(buildSubscriptionLinkStorageKey(apiBaseUrl, deviceId));
       return null;
@@ -95,7 +97,7 @@ function readCachedSubscriptionLink(apiBaseUrl: string, deviceId: string): Cache
   }
 }
 
-function writeCachedSubscriptionLink(apiBaseUrl: string, deviceId: string, subscriptionUrl: string, expiresAt: string): void {
+function writeCachedSubscriptionLink(apiBaseUrl: string, deviceId: string, subscriptionUrl: string): void {
   if (typeof window === "undefined" || !window.localStorage) {
     return;
   }
@@ -103,7 +105,7 @@ function writeCachedSubscriptionLink(apiBaseUrl: string, deviceId: string, subsc
   const payload: CachedSubscriptionLink = {
     deviceId,
     subscriptionUrl,
-    expiresAt
+    cachedAt: new Date().toISOString()
   };
 
   window.localStorage.setItem(buildSubscriptionLinkStorageKey(apiBaseUrl, deviceId), JSON.stringify(payload));
@@ -453,7 +455,8 @@ export const AuthPage = () => {
   }, [provider]);
 
   const handleIssueLink = async () => {
-    if (!session || !registeredDeviceId) {
+    const subscriptionId = subscription?.subscription?.id;
+    if (!session || !registeredDeviceId || !subscriptionId) {
       return;
     }
 
@@ -463,11 +466,11 @@ export const AuthPage = () => {
     setIsCopied(false);
 
     try {
-      const result = await issueSubscriptionLink(session.api_base_url, session.access_token, registeredDeviceId);
-      const preferredSubscriptionUrl = normalizeSubscriptionUrl(result.subscription_url);
+      const result = await issueSubscriptionLink(session.api_base_url, session.access_token, subscriptionId);
+      const preferredSubscriptionUrl = normalizeSubscriptionUrl(result.link);
       setSubscriptionUrl(preferredSubscriptionUrl);
-      setSubscriptionExpiresAt(result.expires_at);
-      writeCachedSubscriptionLink(session.api_base_url, registeredDeviceId, preferredSubscriptionUrl, result.expires_at);
+      setSubscriptionExpiresAt("");
+      writeCachedSubscriptionLink(session.api_base_url, registeredDeviceId, preferredSubscriptionUrl);
       inputs.setClientStatus({
         message: "Ссылка готова.",
         isError: false
@@ -488,14 +491,22 @@ export const AuthPage = () => {
   };
 
   useEffect(() => {
-    if (!session || !registeredDeviceId || subscriptionUrl || isRegisteringDevice || isIssuingLink || isLoadingSubscription) {
+    if (
+      !session ||
+      !registeredDeviceId ||
+      !subscription?.subscription?.id ||
+      subscriptionUrl ||
+      isRegisteringDevice ||
+      isIssuingLink ||
+      isLoadingSubscription
+    ) {
       return;
     }
 
     const cachedLink = readCachedSubscriptionLink(session.api_base_url, registeredDeviceId);
     if (cachedLink) {
       setSubscriptionUrl(cachedLink.subscriptionUrl);
-      setSubscriptionExpiresAt(cachedLink.expiresAt);
+      setSubscriptionExpiresAt("");
       inputs.setClientStatus({
         message: "Ссылка готова.",
         isError: false
@@ -504,7 +515,7 @@ export const AuthPage = () => {
     }
 
     void handleIssueLink();
-  }, [isIssuingLink, isLoadingSubscription, isRegisteringDevice, registeredDeviceId, session, subscriptionUrl]);
+  }, [isIssuingLink, isLoadingSubscription, isRegisteringDevice, registeredDeviceId, session, subscription, subscriptionUrl]);
 
   const handleMockPay = async () => {
     if (!session) {
