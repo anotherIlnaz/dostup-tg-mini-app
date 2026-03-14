@@ -38,6 +38,77 @@ const buildMockSession = (apiBaseUrl: string): AuthSessionState => {
   };
 };
 
+interface CachedSubscriptionLink {
+  deviceId: string;
+  subscriptionUrl: string;
+  expiresAt: string;
+}
+
+const SUBSCRIPTION_LINK_CACHE_VERSION = "universal-1";
+
+function normalizeSubscriptionUrl(rawUrl: string): string {
+  try {
+    const url = new URL(rawUrl);
+    url.searchParams.delete("format");
+    return url.toString();
+  } catch {
+    return rawUrl;
+  }
+}
+
+function buildSubscriptionLinkStorageKey(apiBaseUrl: string, deviceId: string): string {
+  return `dostup:subscription-link:${SUBSCRIPTION_LINK_CACHE_VERSION}:${apiBaseUrl}:${deviceId}`;
+}
+
+function readCachedSubscriptionLink(apiBaseUrl: string, deviceId: string): CachedSubscriptionLink | null {
+  if (typeof window === "undefined" || !window.localStorage) {
+    return null;
+  }
+
+  const raw = window.localStorage.getItem(buildSubscriptionLinkStorageKey(apiBaseUrl, deviceId));
+  if (!raw) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(raw) as CachedSubscriptionLink;
+    const normalizedSubscriptionUrl = normalizeSubscriptionUrl(parsed.subscriptionUrl);
+    if (
+      parsed.deviceId !== deviceId ||
+      typeof normalizedSubscriptionUrl !== "string" ||
+      normalizedSubscriptionUrl.length < 20 ||
+      typeof parsed.expiresAt !== "string" ||
+      Number.isNaN(Date.parse(parsed.expiresAt)) ||
+      new Date(parsed.expiresAt).getTime() <= Date.now()
+    ) {
+      window.localStorage.removeItem(buildSubscriptionLinkStorageKey(apiBaseUrl, deviceId));
+      return null;
+    }
+
+    return {
+      ...parsed,
+      subscriptionUrl: normalizedSubscriptionUrl
+    };
+  } catch {
+    window.localStorage.removeItem(buildSubscriptionLinkStorageKey(apiBaseUrl, deviceId));
+    return null;
+  }
+}
+
+function writeCachedSubscriptionLink(apiBaseUrl: string, deviceId: string, subscriptionUrl: string, expiresAt: string): void {
+  if (typeof window === "undefined" || !window.localStorage) {
+    return;
+  }
+
+  const payload: CachedSubscriptionLink = {
+    deviceId,
+    subscriptionUrl,
+    expiresAt
+  };
+
+  window.localStorage.setItem(buildSubscriptionLinkStorageKey(apiBaseUrl, deviceId), JSON.stringify(payload));
+}
+
 export const AuthPage = () => {
   const [apiBaseUrl, setApiBaseUrl] = useState(authFlags.defaultApiBaseUrl);
   const [provider, setProvider] = useState<AuthProvider>("telegram");
@@ -393,8 +464,10 @@ export const AuthPage = () => {
 
     try {
       const result = await issueSubscriptionLink(session.api_base_url, session.access_token, registeredDeviceId);
-      setSubscriptionUrl(result.subscription_url);
+      const preferredSubscriptionUrl = normalizeSubscriptionUrl(result.subscription_url);
+      setSubscriptionUrl(preferredSubscriptionUrl);
       setSubscriptionExpiresAt(result.expires_at);
+      writeCachedSubscriptionLink(session.api_base_url, registeredDeviceId, preferredSubscriptionUrl, result.expires_at);
       inputs.setClientStatus({
         message: "Ссылка готова.",
         isError: false
@@ -416,6 +489,17 @@ export const AuthPage = () => {
 
   useEffect(() => {
     if (!session || !registeredDeviceId || subscriptionUrl || isRegisteringDevice || isIssuingLink || isLoadingSubscription) {
+      return;
+    }
+
+    const cachedLink = readCachedSubscriptionLink(session.api_base_url, registeredDeviceId);
+    if (cachedLink) {
+      setSubscriptionUrl(cachedLink.subscriptionUrl);
+      setSubscriptionExpiresAt(cachedLink.expiresAt);
+      inputs.setClientStatus({
+        message: "Ссылка готова.",
+        isError: false
+      });
       return;
     }
 
