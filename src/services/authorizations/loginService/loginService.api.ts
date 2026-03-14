@@ -8,6 +8,7 @@ import type {
   MockPayResponse,
   PlanSummary,
   SubscriptionMeResponse,
+  RawSubscriptionLinkResponse,
   SubscriptionLinkResponse,
   AuthVerifyRequest,
   AuthVerifyResponse
@@ -69,15 +70,39 @@ export const updateDeviceRouting = (
 export const issueSubscriptionLink = (
   apiBaseUrl: string,
   accessToken: string,
-  subscriptionId: string
+  subscriptionId: string,
+  deviceId: string,
+  installLimit: number
 ): Promise<SubscriptionLinkResponse> =>
   postJson(
     apiBaseUrl,
     `/api/subscriptions/${subscriptionId}/happ-link`,
-    undefined,
+    {
+      installLimit
+    },
     {
       headers: {
-        Authorization: `Bearer ${accessToken}`
+        Authorization: `Bearer ${accessToken}`,
+        "X-Device-Id": deviceId
+      }
+    }
+  );
+
+export const reissueRawSubscriptionLink = (
+  apiBaseUrl: string,
+  accessToken: string,
+  deviceId: string
+): Promise<RawSubscriptionLinkResponse> =>
+  postJson(
+    apiBaseUrl,
+    "/v1/sub/link/reissue",
+    {
+      device_id: deviceId
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "X-Device-Id": deviceId
       }
     }
   );

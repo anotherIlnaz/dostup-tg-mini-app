@@ -9,6 +9,7 @@ import {
   getDevices,
   issueSubscriptionLink,
   mockPaySubscription,
+  reissueRawSubscriptionLink,
   registerDevice,
   updateDeviceRouting
 } from "../../../services/authorizations/loginService/loginService.api";
@@ -46,6 +47,7 @@ interface CachedSubscriptionLink {
 
 const SUBSCRIPTION_LINK_CACHE_VERSION = "happ-1";
 const FALLBACK_LINK_CACHE_TTL_MS = 60 * 60 * 1000;
+const HAPP_INSTALL_LIMIT = 2;
 
 function normalizeSubscriptionUrl(rawUrl: string): string {
   try {
@@ -109,6 +111,14 @@ function writeCachedSubscriptionLink(apiBaseUrl: string, deviceId: string, subsc
   };
 
   window.localStorage.setItem(buildSubscriptionLinkStorageKey(apiBaseUrl, deviceId), JSON.stringify(payload));
+}
+
+function removeCachedSubscriptionLink(apiBaseUrl: string, deviceId: string): void {
+  if (typeof window === "undefined" || !window.localStorage) {
+    return;
+  }
+
+  window.localStorage.removeItem(buildSubscriptionLinkStorageKey(apiBaseUrl, deviceId));
 }
 
 export const AuthPage = () => {
@@ -454,7 +464,7 @@ export const AuthPage = () => {
     }
   }, [provider]);
 
-  const handleIssueLink = async () => {
+  const handleIssueLink = async (options?: { forceReissue?: boolean }) => {
     const subscriptionId = subscription?.subscription?.id;
     if (!session || !registeredDeviceId || !subscriptionId) {
       return;
@@ -466,13 +476,24 @@ export const AuthPage = () => {
     setIsCopied(false);
 
     try {
-      const result = await issueSubscriptionLink(session.api_base_url, session.access_token, subscriptionId);
+      if (options?.forceReissue) {
+        removeCachedSubscriptionLink(session.api_base_url, registeredDeviceId);
+        await reissueRawSubscriptionLink(session.api_base_url, session.access_token, registeredDeviceId);
+      }
+
+      const result = await issueSubscriptionLink(
+        session.api_base_url,
+        session.access_token,
+        subscriptionId,
+        registeredDeviceId,
+        HAPP_INSTALL_LIMIT
+      );
       const preferredSubscriptionUrl = normalizeSubscriptionUrl(result.link);
       setSubscriptionUrl(preferredSubscriptionUrl);
       setSubscriptionExpiresAt("");
       writeCachedSubscriptionLink(session.api_base_url, registeredDeviceId, preferredSubscriptionUrl);
       inputs.setClientStatus({
-        message: "Ссылка готова.",
+        message: options?.forceReissue ? "Ссылка перевыпущена." : "Ссылка готова.",
         isError: false
       });
     } catch (error) {
@@ -488,6 +509,10 @@ export const AuthPage = () => {
     } finally {
       setIsIssuingLink(false);
     }
+  };
+
+  const handleReissueLink = async () => {
+    await handleIssueLink({ forceReissue: true });
   };
 
   useEffect(() => {
@@ -677,6 +702,7 @@ export const AuthPage = () => {
         expiresAt={subscriptionExpiresAt}
         isCopied={isCopied}
         onCopyLink={handleCopyLink}
+        onReissueLink={handleReissueLink}
         onMockPay={handleMockPay}
         onUpdateRoutingMode={handleUpdateRoutingMode}
       />

@@ -19,6 +19,7 @@ interface SubscriptionManagerPageProps {
   expiresAt?: string;
   isCopied: boolean;
   onCopyLink: () => void;
+  onReissueLink: () => Promise<void> | void;
   onMockPay: () => Promise<void> | void;
   onUpdateRoutingMode: (routingMode: DeviceRoutingMode) => Promise<void> | void;
 }
@@ -1197,6 +1198,7 @@ export const SubscriptionManagerPage = ({
   expiresAt,
   isCopied,
   onCopyLink,
+  onReissueLink,
   onMockPay,
   onUpdateRoutingMode
 }: SubscriptionManagerPageProps) => {
@@ -1263,6 +1265,9 @@ export const SubscriptionManagerPage = ({
           <PrimaryButton type="button" onClick={onCopyLink} disabled={!hasLink}>
             {isCopied ? "Ссылка уже скопирована" : "Скопировать ссылку"}
           </PrimaryButton>
+          <InlineButton type="button" onClick={() => void onReissueLink()} disabled={!hasLink || showLoader}>
+            {isIssuingLink ? "Перевыпускаем ссылку..." : "Перевыпустить ссылку"}
+          </InlineButton>
           <InlineButton type="button" onClick={() => setActiveTab("setup")}>Как подключить устройство</InlineButton>
         </LinkActions>
       </Card>

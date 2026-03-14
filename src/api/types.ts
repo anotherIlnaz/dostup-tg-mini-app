@@ -96,6 +96,11 @@ export interface SubscriptionLinkResponse {
   installLimit: number;
 }
 
+export interface RawSubscriptionLinkResponse {
+  subscription_url: string;
+  expires_at: string;
+}
+
 export interface PlanSummary {
   id: string;
   name: string;
