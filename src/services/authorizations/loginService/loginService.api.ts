@@ -88,6 +88,25 @@ export const issueSubscriptionLink = (
     }
   );
 
+export const issueRawSubscriptionLink = (
+  apiBaseUrl: string,
+  accessToken: string,
+  deviceId: string
+): Promise<RawSubscriptionLinkResponse> =>
+  postJson(
+    apiBaseUrl,
+    "/v1/sub/link",
+    {
+      device_id: deviceId
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "X-Device-Id": deviceId
+      }
+    }
+  );
+
 export const reissueRawSubscriptionLink = (
   apiBaseUrl: string,
   accessToken: string,

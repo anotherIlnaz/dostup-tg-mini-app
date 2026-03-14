@@ -42,9 +42,9 @@ export async function postJson<TResponse>(
   const payload = (await response.json().catch(() => ({}))) as ApiErrorResponse;
   if (!response.ok) {
     throw new ApiError(
-      payload.error?.message || `HTTP ${response.status}`,
+      payload.error?.message || payload.message || `HTTP ${response.status}`,
       response.status,
-      payload.error?.code
+      payload.error?.code || payload.code
     );
   }
 

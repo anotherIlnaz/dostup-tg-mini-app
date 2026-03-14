@@ -57,6 +57,8 @@ export interface ApiErrorResponse {
     code?: string;
     message?: string;
   };
+  code?: string;
+  message?: string;
 }
 
 export interface AuthSessionState extends AuthVerifyResponse {

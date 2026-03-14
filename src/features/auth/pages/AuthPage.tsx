@@ -8,6 +8,7 @@ import {
   getSubscriptionMe,
   getDevices,
   issueSubscriptionLink,
+  issueRawSubscriptionLink,
   mockPaySubscription,
   reissueRawSubscriptionLink,
   registerDevice,
@@ -48,6 +49,19 @@ interface CachedSubscriptionLink {
 const SUBSCRIPTION_LINK_CACHE_VERSION = "happ-1";
 const FALLBACK_LINK_CACHE_TTL_MS = 60 * 60 * 1000;
 const HAPP_INSTALL_LIMIT = 2;
+
+function shouldFallbackToRawSubscriptionLink(error: unknown): boolean {
+  if (!(error instanceof ApiError)) {
+    return false;
+  }
+
+  return (
+    error.code === "HAPP_CONFIGURATION_ERROR" ||
+    error.code === "HAPP_LIMITED_LINK_ERROR" ||
+    error.code === "HAPP_CRYPTO_ERROR" ||
+    error.status >= 500
+  );
+}
 
 function normalizeSubscriptionUrl(rawUrl: string): string {
   try {
@@ -478,24 +492,81 @@ export const AuthPage = () => {
     try {
       if (options?.forceReissue) {
         removeCachedSubscriptionLink(session.api_base_url, registeredDeviceId);
-        await reissueRawSubscriptionLink(session.api_base_url, session.access_token, registeredDeviceId);
+        const rawResult = await reissueRawSubscriptionLink(
+          session.api_base_url,
+          session.access_token,
+          registeredDeviceId
+        );
+
+        try {
+          const result = await issueSubscriptionLink(
+            session.api_base_url,
+            session.access_token,
+            subscriptionId,
+            registeredDeviceId,
+            HAPP_INSTALL_LIMIT
+          );
+          const preferredSubscriptionUrl = normalizeSubscriptionUrl(result.link);
+          setSubscriptionUrl(preferredSubscriptionUrl);
+          setSubscriptionExpiresAt("");
+          writeCachedSubscriptionLink(session.api_base_url, registeredDeviceId, preferredSubscriptionUrl);
+          inputs.setClientStatus({
+            message: "Ссылка перевыпущена.",
+            isError: false
+          });
+          return;
+        } catch (happError) {
+          if (!shouldFallbackToRawSubscriptionLink(happError)) {
+            throw happError;
+          }
+
+          const fallbackUrl = normalizeSubscriptionUrl(rawResult.subscription_url);
+          setSubscriptionUrl(fallbackUrl);
+          setSubscriptionExpiresAt(rawResult.expires_at);
+          writeCachedSubscriptionLink(session.api_base_url, registeredDeviceId, fallbackUrl);
+          inputs.setClientStatus({
+            message: "Ссылка перевыпущена в обычном формате.",
+            isError: false
+          });
+          return;
+        }
       }
 
-      const result = await issueSubscriptionLink(
-        session.api_base_url,
-        session.access_token,
-        subscriptionId,
-        registeredDeviceId,
-        HAPP_INSTALL_LIMIT
-      );
-      const preferredSubscriptionUrl = normalizeSubscriptionUrl(result.link);
-      setSubscriptionUrl(preferredSubscriptionUrl);
-      setSubscriptionExpiresAt("");
-      writeCachedSubscriptionLink(session.api_base_url, registeredDeviceId, preferredSubscriptionUrl);
-      inputs.setClientStatus({
-        message: options?.forceReissue ? "Ссылка перевыпущена." : "Ссылка готова.",
-        isError: false
-      });
+      try {
+        const result = await issueSubscriptionLink(
+          session.api_base_url,
+          session.access_token,
+          subscriptionId,
+          registeredDeviceId,
+          HAPP_INSTALL_LIMIT
+        );
+        const preferredSubscriptionUrl = normalizeSubscriptionUrl(result.link);
+        setSubscriptionUrl(preferredSubscriptionUrl);
+        setSubscriptionExpiresAt("");
+        writeCachedSubscriptionLink(session.api_base_url, registeredDeviceId, preferredSubscriptionUrl);
+        inputs.setClientStatus({
+          message: "Ссылка готова.",
+          isError: false
+        });
+      } catch (happError) {
+        if (!shouldFallbackToRawSubscriptionLink(happError)) {
+          throw happError;
+        }
+
+        const rawResult = await issueRawSubscriptionLink(
+          session.api_base_url,
+          session.access_token,
+          registeredDeviceId
+        );
+        const fallbackUrl = normalizeSubscriptionUrl(rawResult.subscription_url);
+        setSubscriptionUrl(fallbackUrl);
+        setSubscriptionExpiresAt(rawResult.expires_at);
+        writeCachedSubscriptionLink(session.api_base_url, registeredDeviceId, fallbackUrl);
+        inputs.setClientStatus({
+          message: "Ссылка готова в обычном формате.",
+          isError: false
+        });
+      }
     } catch (error) {
       const message = handleAuthorizedError(error, "Не удалось выдать ссылку");
       if (!message) {
