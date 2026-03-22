@@ -1,6 +1,9 @@
 name: Deploy TG Mini App Stage
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 concurrency:
