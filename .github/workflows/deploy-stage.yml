@@ -14,7 +14,7 @@ permissions:
 env:
   REGISTRY: ghcr.io
   STAGE_IMAGE_TAG: stage
-  STAGE_URL: https://miniapp-stage.dostup-vpn.ru
+  STAGE_URL: https://app-stage.dostup-vpn.ru
 
 jobs:
   build-and-push:
@@ -74,6 +74,13 @@ jobs:
           WEBHOOK_URL: ${{ secrets.STAGE_DOKPLOY_MINIAPP_WEBHOOK }}
         run: |
           set -eu
+          case "$WEBHOOK_URL" in
+            http://*|https://*) ;;
+            *)
+              echo "STAGE_DOKPLOY_MINIAPP_WEBHOOK must contain a raw http(s) URL." >&2
+              exit 1
+              ;;
+          esac
           curl -fsS -X POST "$WEBHOOK_URL"
 
       - name: Verify stage readiness
