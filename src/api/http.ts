@@ -29,6 +29,7 @@ export async function postJson<TResponse>(
   try {
     response = await fetch(`${normalizedBase}${path}`, {
       method,
+      cache: "no-store",
       headers: {
         "Content-Type": "application/json",
         ...(options?.headers ?? {})
