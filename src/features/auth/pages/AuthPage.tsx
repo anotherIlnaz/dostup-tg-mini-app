@@ -439,6 +439,10 @@ export const AuthPage = () => {
         setPlans(plansResponse);
         setSubscription(subscriptionResponse);
         setDevices(devicesResponse);
+        inputs.setClientStatus({
+          message: subscriptionResponse.subscription.status === "active" ? "Подписка активна." : "Данные подписки загружены.",
+          isError: false
+        });
       } catch (error) {
         if (cancelled) {
           return;
