@@ -66,3 +66,32 @@ Email/Phone поток:
 3. Дай публичный HTTPS URL через туннель.
 4. Укажи URL в `BotFather -> Menu Button / WebApp`.
 5. Открой Mini App из Telegram и нажми `Продолжить через Telegram`.
+
+## Stage deploy
+
+Репозиторий готов к stage rollout через `GitHub Actions -> GHCR -> Dokploy`.
+
+Что добавлено:
+
+- `Dockerfile` для production-like nginx image
+- `.github/workflows/deploy-stage.yml`
+- `infra/nginx/default.conf` для SPA fallback
+
+Stage build использует:
+
+- `VITE_API_BASE_URL=https://api-stage.dostup-vpn.ru`
+- `VITE_APP_ENV=stage`
+- `VITE_BASE_PATH=/`
+- `VITE_ENABLE_DEV_LOGIN=false`
+- `VITE_ALLOW_DEV_CODE_HINT=false`
+
+Перед первым запуском нужны:
+
+- Dokploy service `miniapp-stage`
+- image `ghcr.io/<owner>/dostup-miniapp:stage`
+- domain `miniapp-stage.dostup-vpn.ru`
+- GitHub secret `STAGE_DOKPLOY_MINIAPP_WEBHOOK`
+
+Проверка после деплоя:
+
+- открыть `https://miniapp-stage.dostup-vpn.ru`
